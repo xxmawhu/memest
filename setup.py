@@ -16,7 +16,7 @@ from setuptools import find_packages
 import sys
 import os
 
-m_version = '1.0'
+m_version = '1.0.1'
 
 if sys.argv[1] == "publish":
     os.system("python3 setup.py sdist")
@@ -24,7 +24,7 @@ if sys.argv[1] == "publish":
     os.system("twine upload dist/*{}*  --verbose".format(m_version))
 else:
     setup(
-        name='MeST',
+        name='MeMeST',
         version=m_version,
         author='Xin-Xin Ma',
         description="Multi-Repository Sync Tool",
@@ -36,7 +36,7 @@ else:
         project_urls={
             'Source': 'https://github.com/xxmawhu/LinuxRecycle',
         },
-        entry_points={'console_scripts': ['mest=mest.main:main']},
+        entry_points={'console_scripts': ['memest=mest.main:main']},
         install_requires=[
             'termcolor',
             'loguru',
