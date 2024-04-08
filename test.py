@@ -1,3 +1,3 @@
 from mest import main
 
-main.main()
+main.run_forever()
