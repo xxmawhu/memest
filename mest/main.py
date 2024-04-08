@@ -8,6 +8,7 @@ import psutil
 from loguru import logger
 
 from .config import Config
+from .rep_mana import MeST
 
 # logger.remove(handler_id=None)
 logger.add(
@@ -18,18 +19,9 @@ logger.add(
     diagnose=True,
     enqueue=True,
 )
-CONFIG_FILE = os.path.expanduser("~/.config/memest/config.ini")
 USAGE = """ USAGE memest [cmd]
 cmd: start, status, stop
 """
-
-
-def show_status():
-    pass
-
-
-def do_init():
-    pass
 
 
 def is_memest_daemon_running():
@@ -45,15 +37,11 @@ def stop_memest_daemon():
 
 
 def run_forever():
+    CONFIG_FILE = os.path.expanduser("~/.config/memest/config.ini")
     cfg = Config(CONFIG_FILE)
     logger.info("config file: {}", CONFIG_FILE)
-    all_rep = [i for i in cfg.get_sections() if i != "default"]
-    logger.info("all_rep: {}", all_rep)
-    while True:
-        if cfg.update_config():
-            all_rep = [i for i in cfg.get_sections() if i != "default"]
-            logger.info("all_rep: {}", all_rep)
-        time.sleep(5)
+    mestor = MeST(cfg)
+    mestor.run()
 
 
 def main():
@@ -67,12 +55,10 @@ def main():
         else:
             logger.info("start memest")
             os.system('nohup memest --daemon >> /dev/null 2>&1 &')
-            logger.info("start memest")
-            return
-    if cmd == "status":
+    elif cmd == "status":
         if is_memest_daemon_running():
-            logger.info("memest is running")
+            print("memest is running")
         else:
-            logger.info("memest is dead")
-    if cmd == "--daemon":
+            print("memest is dead")
+    elif cmd == "--daemon":
         run_forever()
