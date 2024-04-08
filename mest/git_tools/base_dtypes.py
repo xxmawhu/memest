@@ -28,7 +28,7 @@ class RepData:
         self.key_file = key_file
         self.timeout = timeout or 600
         if ".com" in address:
-            usr = address.split("/")[0].split(":")[-1]
+            usr = "_".join(address.split(":")[-1].split("/")[:]).replace(".git", "")
             host = address.split("@")[-1].split(".")[0]
             self.alias = f"{host}_{usr}"
         else:
