@@ -36,6 +36,9 @@ class Config:
         self._cfp = cfp
         return True
 
+    def get_sections(self):
+        return self._cfp.sections()
+
     def get_value(self, key: str, default_value: str = None) -> str:
         """
         key的格式: section.option
