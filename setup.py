@@ -13,9 +13,10 @@ def get_today_date():
 VERSION = get_today_date().replace(".0", ".")
 
 if sys.argv[1] == "publish":
+    os.system("rm -rf dist/")
     os.system("python3 setup.py sdist")
     os.system("python3 setup.py bdist_wheel")
-    os.system("twine upload dist/*{}*".format(VERSION))
+    os.system("twine upload dist/* --skip-existing")
 else:
     setup(
         name='MeMeST',
@@ -23,12 +24,13 @@ else:
         author='Xin-Xin Ma',
         description="Multi-Repository Sync Tool",
         description_content_type="text/markdown",
-        long_description="auto-sync multi-repository",
+        long_description_content_type="text/markdown",
+        long_description=open("./Readme.md", 'r').read(),
         packages=find_packages(),
         data_files=[("", ["LICENSE"])],
         license="GPL",
         # project_urls={
-            # 'Source': 'https://github.com/xxmawhu/LinuxRecycle',
+        # 'Source': 'https://github.com/xxmawhu/LinuxRecycle',
         # },
         entry_points={'console_scripts': ['memest=mest.main:main']},
         install_requires=['termcolor', 'loguru', "psutil"]
