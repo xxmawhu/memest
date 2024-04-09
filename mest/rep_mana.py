@@ -31,21 +31,19 @@ class MeST:
         all_rep = [i for i in self.cfg.get_sections() if i != "default"]
         logger.info("all_rep: {}", all_rep)
         for k in all_rep:
-            local_data = git_tools.RepData(
-                address=self.cfg.get_value(k + ".local"),
-                work_dir=os.path.join(self.cache_dir, k),
-            )
+            work_dir = os.path.join(self.cache_dir, k)
+            address = os.path.expanduser(self.cfg.get_value(k + ".local"))
+            local_data = git_tools.RepData(address=address, work_dir=work_dir)
+            logger.info("local_data:\n{}", local_data)
             remote_list = []
             for remote_cfg in self.cfg.get_list(k + ".remote", []):
+                address = remote_cfg.split("|")[0].strip()
                 key_file = ""
                 if "|" in remote_cfg:
-                    key_file = remote_cfg.split("|")[1].strip()
-                remote_data = git_tools.RepData(
-                    address=self.cfg.get_value(remote_cfg.split("|")[0].strip()),
-                    work_dir=os.path.join(self.cache_dir, k),
-                    key_file=key_file,
-                )
+                    key_file = os.path.expanduser(remote_cfg.split("|")[1].strip())
+                remote_data = git_tools.RepData(address=address, work_dir=work_dir, key_file=key_file)
                 remote_list.append(remote_data)
+                logger.info("add:\n{}", remote_data)
             rep = git_tools.RepCacheData(local=local_data, remote=remote_list)
 
     def check(self):
