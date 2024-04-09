@@ -40,7 +40,6 @@ def stop_memest_daemon():
             os.kill(process.info['pid'], signal.SIGKILL)
 
 
-@logger.catch
 def run_forever():
     CONFIG_FILE = os.path.expanduser("~/.config/memest/config.ini")
     cfg = Config(CONFIG_FILE)

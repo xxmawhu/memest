@@ -60,5 +60,8 @@ class MeST:
     def run(self):
         self.init_rep_set()
         while True:
-            self.check()
-            time.sleep(self.loop_period)
+            try:
+                self.check()
+            except Exception as e:
+                logger.error("{}", e)
+            time.sleep(int(self.loop_period))
