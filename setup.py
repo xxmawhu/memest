@@ -6,8 +6,8 @@ from setuptools import find_packages
 
 
 def get_today_date():
-    today = datetime.date.today()
-    return today.strftime("%Y.%m.%d")
+    today = datetime.datetime.now()
+    return today.strftime("%Y.%m.%d.%H%M%S")
 
 
 VERSION = get_today_date().replace(".0", ".")
