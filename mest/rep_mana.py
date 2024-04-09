@@ -7,7 +7,7 @@ import git_tools
 
 
 def one_cycle_task(rep_data):
-    git_tools.api.init(rep_data)
+    git_tools.api.init_rep(rep_data)
     git_tools.api.fetch(rep_data)
     git_tools.api.merge_remote_branches(rep_data)
     git_tools.api.push(rep_data)
