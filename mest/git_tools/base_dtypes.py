@@ -38,3 +38,7 @@ class RepData:
 class RepCacheData:
     local: RepData = None
     remote_rep_list = []
+
+    def __init__(self, local, remote=[]):
+        self.local = local
+        self.remote_rep_list = remote

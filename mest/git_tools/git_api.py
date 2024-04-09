@@ -58,14 +58,68 @@ def fetch(rep_data: RepData):
     else:
         cmd = ['git', 'fetch', rep_data.alias]
     subprocess.run(cmd, cwd=rep_data.work_dir, check=True)
+    update_branch_list(rep_data)
+
+
+def get_remote_branches(work_dir, alias):
+    """
+    Given a local working directory (work_dir) and a remote alias (alias),
+    return a list of all branches associated with the specified remote.
+
+    Args:
+        work_dir (str): Path to the local Git repository.
+        alias (str): Name of the remote to fetch branches from.
+
+    Returns:
+        list[str]: List containing the names of all branches from the specified remote.
+    """
+
+    # Execute the 'git branch -r' command to list all remote branches
+
+    # Run the command and capture its output
+
+    # Filter the output to keep only the branches belonging to the given remote alias
+
+    # Extract the branch names by removing the remote prefix (e.g., "alias/")
 
 
 def update_branch_list(rep_data: RepData):
-    pass
+    work_dir = rep_data.work_dir
+    git_command = ["git", "branch", "-r"]
+    output = subprocess.check_output(git_command, text=True, cwd=work_dir)
+    alias = rep_data.alias
+    remote_branches = [line.strip() for line in output.splitlines() if line.strip().startswith(alias)]
+    logger.info("remote_branches {}", remote_branches)
+    rep_data.branch_list = [branch_name[len(alias) + 1:] for branch_name in remote_branches]
+
+
+def get_local_branch_list(work_dir):
+    git_command = ["git", "branch"]
+    output = subprocess.check_output(git_command, text=True, cwd=work_dir)
+    branch_list = [line.split(" ")[-1] for line in output.splitlines()]
+    return branch_list
 
 
 def push(rep_data: RepData):
-    pass
+    local_branch_list = get_local_branch_list(rep_data.work_dir)
+    logger.info("local_branch_list:{}", local_branch_list)
+    work_dir = rep_data.work_dir
+    for branch in local_branch_list:
+        checkout_command = ['git', 'checkout', branch]
+        push_command = ['git', 'push', rep_data.alias, branch]
+        subprocess.run(checkout_command, cwd=work_dir, check=True)
+        subprocess.run(push_command, cwd=work_dir, check=True)
+
+
+def merge_remote_branches(rep_data):
+    work_dir = rep_data.work_dir
+    branch_list = rep_data.branch_list
+    alias = rep_data.alias
+    for branch in branch_list:
+        checkout_command = ['git', 'checkout', branch]
+        merge_command = ['git', 'merge', f'{alias}/{branch}']
+        subprocess.run(checkout_command, cwd=work_dir, check=True)
+        subprocess.run(merge_command, cwd=work_dir, check=True)
 
 
 def __merge_one_branch__(rep_data, local_branch):
