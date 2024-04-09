@@ -16,7 +16,7 @@ if sys.argv[1] == "publish":
     os.system("rm -rf dist/")
     os.system("python3 setup.py sdist")
     os.system("python3 setup.py bdist_wheel")
-    os.system("twine upload dist/* --skip-existing")
+    os.system("twine upload dist/*")
 else:
     setup(
         name='MeMeST',
