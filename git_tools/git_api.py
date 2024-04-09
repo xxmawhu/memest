@@ -28,6 +28,7 @@ def ensure_bare_repository(local_rep):
 
 def init_rep(rep_data: RepData):
     mkdir(rep_data.work_dir)
+    logger.info("[{}] init_rep", rep_data.alias)
     git_dir = os.path.join(rep_data.work_dir, '.git')
     is_git_repo = os.path.isdir(git_dir)
     if not is_git_repo:
@@ -46,8 +47,9 @@ def init_rep(rep_data: RepData):
     # 增加remote 仓库
     all_remotes = get_all_remotes(rep_data.work_dir)
     if rep_data.alias not in all_remotes:
+        logger.info("add remote {}", rep_data.alias)
         cmd = ['git', 'remote', 'add', rep_data.alias, rep_data.address]
-        subprocess.run(cmd, cwd=rep_data.work_dir, check=False)
+        subprocess.run(cmd, cwd=rep_data.work_dir, check=True)
 
 
 @logger.catch
