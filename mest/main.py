@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import signal
 import datetime
 import subprocess
 
@@ -33,9 +34,13 @@ def is_memest_daemon_running():
 
 
 def stop_memest_daemon():
-    pass
+    for process in psutil.process_iter(["pid", "name", "cmdline"]):
+        cmdline = " ".join(process.info['cmdline'])
+        if "--daemon" in cmdline and "memest" in cmdline:
+            os.kill(process.info['pid'], signal.SIGKILL)
 
 
+@logger.catch
 def run_forever():
     CONFIG_FILE = os.path.expanduser("~/.config/memest/config.ini")
     cfg = Config(CONFIG_FILE)
@@ -60,5 +65,7 @@ def main():
             print("memest is running")
         else:
             print("memest is dead")
+    elif cmd == 'stop':
+        stop_memest_daemon()
     elif cmd == "--daemon":
         run_forever()
