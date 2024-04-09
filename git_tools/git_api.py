@@ -57,7 +57,7 @@ def fetch(rep_data: RepData):
         cmd = ['ssh-agent', 'sh', '-c', f'GIT_SSH_COMMAND="ssh -i {key_file}" git fetch {rep_data.alias}']
     else:
         cmd = ['git', 'fetch', rep_data.alias]
-    subprocess.run(cmd, cwd=rep_data.work_dir, check=True)
+    subprocess.run(cmd, cwd=rep_data.work_dir, check=True, stdout=subprocess.DEVNULL)
     update_branch_list(rep_data)
 
 
@@ -89,8 +89,8 @@ def update_branch_list(rep_data: RepData):
     output = subprocess.check_output(git_command, text=True, cwd=work_dir)
     alias = rep_data.alias
     remote_branches = [line.strip() for line in output.splitlines() if line.strip().startswith(alias)]
-    logger.info("remote_branches {}", remote_branches)
     rep_data.branch_list = [branch_name[len(alias) + 1:] for branch_name in remote_branches]
+    logger.info("remote_branches {}", rep_data.branch_list)
 
 
 def get_local_branch_list(work_dir):
@@ -102,13 +102,14 @@ def get_local_branch_list(work_dir):
 
 def push(rep_data: RepData):
     local_branch_list = get_local_branch_list(rep_data.work_dir)
-    logger.info("local_branch_list:{}", local_branch_list)
+    logger.info("[{}] local_branch_list:{}", rep_data.alias, local_branch_list)
     work_dir = rep_data.work_dir
     for branch in local_branch_list:
         checkout_command = ['git', 'checkout', branch]
         push_command = ['git', 'push', rep_data.alias, branch]
-        subprocess.run(checkout_command, cwd=work_dir, check=True)
-        subprocess.run(push_command, cwd=work_dir, check=True)
+        logger.info("push:{}", " ".join(push_command))
+        subprocess.run(checkout_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
+        subprocess.run(push_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
 
 
 def merge_remote_branches(rep_data):
@@ -118,8 +119,8 @@ def merge_remote_branches(rep_data):
     for branch in branch_list:
         checkout_command = ['git', 'checkout', branch]
         merge_command = ['git', 'merge', f'{alias}/{branch}']
-        subprocess.run(checkout_command, cwd=work_dir, check=True)
-        subprocess.run(merge_command, cwd=work_dir, check=True)
+        subprocess.run(checkout_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
+        subprocess.run(merge_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
 
 
 def __merge_one_branch__(rep_data, local_branch):

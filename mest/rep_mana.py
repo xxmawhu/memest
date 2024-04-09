@@ -6,7 +6,9 @@ from loguru import logger
 import git_tools
 
 
+@logger.catch
 def one_cycle_task(rep_data):
+    logger.info("one_cycle_task for {}", rep_data.alias)
     git_tools.api.init_rep(rep_data)
     git_tools.api.fetch(rep_data)
     git_tools.api.merge_remote_branches(rep_data)
@@ -44,7 +46,7 @@ class MeST:
                 remote_data = git_tools.RepData(address=address, work_dir=work_dir, key_file=key_file)
                 remote_list.append(remote_data)
                 logger.info("add:\n{}", remote_data)
-            rep = git_tools.RepCacheData(local=local_data, remote=remote_list)
+            self.rep_set[k] = git_tools.RepCacheData(local=local_data, remote=remote_list)
 
     def check(self):
         if self.cfg.update_config():
