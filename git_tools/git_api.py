@@ -33,7 +33,7 @@ def init_rep(rep_data: RepData):
     is_git_repo = os.path.isdir(git_dir)
     if not is_git_repo:
         logger.info("Initializing {}", rep_data.work_dir)
-        subprocess.run(['git', 'init'], cwd=rep_data.work_dir, check=False)
+        subprocess.run(['git', 'init'], cwd=rep_data.work_dir, check=False, Text=True)
         logger.info("Repository {} initialized.", rep_data.work_dir)
     # 添加远程仓库
     if rep_data.alias == "":
@@ -52,14 +52,16 @@ def init_rep(rep_data: RepData):
         subprocess.run(cmd, cwd=rep_data.work_dir, check=True)
 
 
-@logger.catch
 def fetch(rep_data: RepData):
     if rep_data.key_file:
         key_file = rep_data.key_file
         cmd = ['ssh-agent', 'sh', '-c', f'GIT_SSH_COMMAND="ssh -i {key_file}" git fetch {rep_data.alias}']
     else:
         cmd = ['git', 'fetch', rep_data.alias]
-    subprocess.run(cmd, cwd=rep_data.work_dir, check=True, stdout=subprocess.DEVNULL)
+    try:
+        result = subprocess.run(cmd, cwd=rep_data.work_dir, check=True, stdout=subprocess.DEVNULL)
+    except Exception as e:
+        logger.error("{} {}", e, result)
     update_branch_list(rep_data)
 
 
@@ -108,10 +110,13 @@ def push(rep_data: RepData):
     work_dir = rep_data.work_dir
     for branch in local_branch_list:
         checkout_command = ['git', 'checkout', branch]
-        push_command = ['git', 'push', rep_data.alias, branch]
-        logger.info("push:{}", " ".join(push_command))
         subprocess.run(checkout_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
-        subprocess.run(push_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
+        push_command = ['git', 'push', rep_data.alias, branch]
+        logger.info("{}", " ".join(push_command))
+        try:
+            result = subprocess.run(push_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
+        except Exception as e:
+            logger.error("{}, {}", result, e)
 
 
 def merge_remote_branches(rep_data):
@@ -123,11 +128,3 @@ def merge_remote_branches(rep_data):
         merge_command = ['git', 'merge', f'{alias}/{branch}']
         subprocess.run(checkout_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
         subprocess.run(merge_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
-
-
-def __merge_one_branch__(rep_data, local_branch):
-    pass
-
-
-def merge_all_branch(rep_data1, rep_data2):
-    pass
