@@ -28,6 +28,7 @@ class MeST:
         self.cfg = cfg
         self.loop_period = self.cfg.get_intvalue("default.loop_period", 5)
         self.cache_dir = os.path.expanduser(self.cfg.get_value("default.cache"))
+        git_tools.api.mkdir(self.cache_dir)
 
     def init_rep_set(self):
         all_rep = [i for i in self.cfg.get_sections() if i != "default"]
