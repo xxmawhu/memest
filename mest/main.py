@@ -21,7 +21,7 @@ logger.add(
     enqueue=True,
 )
 USAGE = """ USAGE memest [cmd]
-cmd: start, status, stop
+cmd: start, status, stop, restart
 """
 
 CONFIG_FILE = os.path.expanduser("~/.config/memest/config.ini")
@@ -74,5 +74,8 @@ def main():
             print("memest is dead")
     elif cmd == 'stop':
         stop_memest_daemon()
+    elif cmd == "restart":
+        os.system('memest stop')
+        os.system('memest start')
     elif cmd == "--daemon":
         run_forever()
