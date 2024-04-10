@@ -68,6 +68,7 @@ def init_rep(rep_data: RepData):
         subprocess.run(cmd, cwd=rep_data.work_dir, check=True)
 
 
+@logger.catch
 def fetch(rep_data: RepData):
     if not good_rep_data(rep_data):
         return
@@ -93,6 +94,7 @@ def update_branch_list(rep_data: RepData):
     logger.info("remote_branches {}", rep_data.branch_list)
 
 
+@logger.catch
 def push(rep_data: RepData):
     if not good_rep_data(rep_data):
         return

@@ -6,6 +6,7 @@ from loguru import logger
 import git_tools
 
 
+@logger.catch
 def one_cycle_task(rep_data):
     logger.info("one_cycle_task for {}", rep_data.alias)
     git_tools.api.init_rep(rep_data)
