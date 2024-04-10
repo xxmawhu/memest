@@ -24,6 +24,14 @@ USAGE = """ USAGE memest [cmd]
 cmd: start, status, stop
 """
 
+CONFIG_FILE = os.path.expanduser("~/.config/memest/config.ini")
+
+
+def init_check():
+    if not os.path.exists(CONFIG_FILE):
+        print(f"please set `{CONFIG_FILE}`")
+        exit(1)
+
 
 def is_memest_daemon_running():
     for process in psutil.process_iter(["pid", "name", "cmdline"]):
@@ -41,10 +49,6 @@ def stop_memest_daemon():
 
 
 def run_forever():
-    CONFIG_FILE = os.path.expanduser("~/.config/memest/config.ini")
-    if not os.path.exists(CONFIG_FILE):
-        print(f"please set `{CONFIG_FILE}`")
-        exit(1)
     cfg = Config(CONFIG_FILE)
     mestor = MeST(cfg)
     mestor.run()
@@ -56,6 +60,7 @@ def main():
         exit(1)
     cmd = sys.argv[1]
     os.system("mkdir -p ~/.cache/")
+    init_check()
     if cmd == "start":
         if is_memest_daemon_running():
             print("memest is running")
