@@ -1,4 +1,12 @@
 import time
+import hashlib
+
+
+def unique_id(input_str):
+    hash_object = hashlib.md5(input_str.encode())
+    hex_dig = hash_object.hexdigest()
+    unique_id = hex_dig[:12]
+    return unique_id
 
 
 class RepData:
@@ -27,10 +35,8 @@ class RepData:
         self.work_dir = work_dir
         self.key_file = key_file
         self.timeout = timeout or 600
-        if ".com" in address:
-            usr = "_".join(address.split(":")[-1].split("/")[:]).replace(".git", "")
-            host = address.split("@")[-1].split(".")[0]
-            self.alias = f"{host}_{usr}"
+        if "@" in address:
+            self.alias = unique_id(address)
         else:
             self.alias = "local"
 
