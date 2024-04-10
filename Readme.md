@@ -2,9 +2,12 @@ MeST
 ==============
 Multi-Repository Sync Tool
 
+
 features
 -----------------
-do sync between different repository
+* Automated synchronization between a local bare repository or multiple remote repositories directly, enabling seamless updates.
+* The synchronization process runs entirely in the background, ensuring that branches across all repositories remain consistently up-to-date.
+* Users only interact with the local bare repository, enjoying a smooth experience without noticeable network latency, making it seem as though they are working locally despite the syncing of multiple repositories.
 
 
 Usage
@@ -13,25 +16,27 @@ Usage
 1. setup config for `memest`
 
 The unique config file is `~/.config/memest/config.ini`
-You can setup, such as
+You can customize your own configurations, and here's an example:
 ```
 [default]
-; check period for sync
+; Repository synchronization check interval
 loop_period=10
+; Repository cache folder
 cache=~/.local/gitcache
 
 [example]
-loop_period=10
 ; the local bare repository
+; If it does not exist, the system will automatically create it.
 local=~/.local/rep/example.git
-; 远程的一系列仓库的配置，每个用`,`隔开。
-; 单个配置格式为[git address] | [key]
-; git address 须是git协议
-; [key] 可省略
+; List of all remote repositories
+; The configuration format for each repository is as follows
+;   [address]|[private key file] or [address]
 remote=git@github.com:xxmawhu/example.git|~/.ssh/id_rsa,
+       git@githuh.com:xxmawhu/another.git,
 ```
 2. start
 
 ```bash
 memest start
 ```
+
