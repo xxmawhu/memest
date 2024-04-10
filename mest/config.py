@@ -51,7 +51,7 @@ class Config:
             section = ll[0]
             option = ll[1]
             if self._cfp.has_option(section, option):
-                return self._cfp.get(section, option)
+                return self._cfp.get(section, option).strip('"')
             return default_value
         return default_value
 
@@ -66,7 +66,7 @@ class Config:
         str_val = self.get_value(key, "")
         if not str_val:
             return default_value
-        str_list = [i.strip() for i in str_val.split(",") if i.strip()]
+        str_list = [i.strip().strip('"') for i in str_val.split(",") if i.strip()]
         return str_list
 
     def get_floatlist(self, key: str, default_value: list = []) -> list:
