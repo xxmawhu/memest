@@ -38,6 +38,7 @@ class MeST:
             work_dir = os.path.join(self.cache_dir, k)
             address = os.path.expanduser(self.cfg.get_value(k + ".local"))
             local_data = git_tools.RepData(address=address, work_dir=work_dir)
+            local_data.alias = "local"
             logger.info("local_data:\n{}", local_data)
             remote_list = []
             for remote_cfg in self.cfg.get_list(k + ".remote", []):
