@@ -80,7 +80,7 @@ def fetch(rep_data: RepData):
     try:
         result = subprocess.run(cmd, cwd=rep_data.work_dir, check=True, stdout=subprocess.DEVNULL)
     except Exception as e:
-        logger.error("{} {}", e, result)
+        logger.error("{}, fail to fetch {}", e, rep_data.address)
     update_branch_list(rep_data)
 
 
@@ -114,7 +114,7 @@ def push(rep_data: RepData):
         try:
             result = subprocess.run(push_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
         except Exception as e:
-            logger.error("{}, {}", result, e)
+            logger.error("fail to pull {} {}", rep_data.address, e)
 
 
 def merge_remote_branches(rep_data):
