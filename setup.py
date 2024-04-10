@@ -28,9 +28,9 @@ else:
         packages=find_packages(),
         data_files=[("", ["LICENSE"])],
         license="GPL",
-        # project_urls={
-        # 'Source': 'https://github.com/xxmawhu/LinuxRecycle',
-        # },
+        project_urls={
+            'Source': 'https://github.com/xxmawhu/memest.git',
+        },
         entry_points={'console_scripts': ['memest=mest.main:main']},
         install_requires=['termcolor', 'loguru', "psutil"]
     )
