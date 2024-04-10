@@ -44,7 +44,7 @@ def init_rep(rep_data: RepData):
     if not good_rep_data(rep_data):
         return
     mkdir(rep_data.work_dir)
-    logger.info("[{}] init_rep", rep_data.address)
+    # logger.info("{}: init_rep", rep_data.address)
     git_dir = os.path.join(rep_data.work_dir, '.git')
     is_git_repo = os.path.isdir(git_dir)
     if not is_git_repo:
@@ -72,6 +72,7 @@ def init_rep(rep_data: RepData):
 def fetch(rep_data: RepData):
     if not good_rep_data(rep_data):
         return
+    logger.info("fetch {}", rep_data.address)
     cmd = []
     if rep_data.key_file:
         git_ssh_command = f'ssh -i "{rep_data.key_file}"'
@@ -91,7 +92,7 @@ def update_branch_list(rep_data: RepData):
     alias = rep_data.alias
     remote_branches = [line.strip() for line in output.splitlines() if line.strip().startswith(alias)]
     rep_data.branch_list = [branch_name[len(alias) + 1:] for branch_name in remote_branches]
-    logger.info("remote_branches {}", rep_data.branch_list)
+    # logger.info("remote_branches {}", rep_data.branch_list)
 
 
 @logger.catch
@@ -99,7 +100,7 @@ def push(rep_data: RepData):
     if not good_rep_data(rep_data):
         return
     local_branch_list = get_local_branch_list(rep_data.work_dir)
-    logger.info("[{}] local_branch_list:{}", rep_data.alias, local_branch_list)
+    logger.info("push to {}", rep_data.address)
     work_dir = rep_data.work_dir
     for branch in local_branch_list:
         checkout_command = ['git', 'checkout', branch]
@@ -110,7 +111,6 @@ def push(rep_data: RepData):
             push_command.append(git_ssh_command)
 
         push_command += ['git', 'push', rep_data.alias, branch]
-        logger.info("{}", " ".join(push_command))
         try:
             result = subprocess.run(push_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
         except Exception as e:
