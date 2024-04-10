@@ -42,8 +42,10 @@ def stop_memest_daemon():
 
 def run_forever():
     CONFIG_FILE = os.path.expanduser("~/.config/memest/config.ini")
+    if not os.path.exists(CONFIG_FILE):
+        print(f"please set `{CONFIG_FILE}`")
+        exit(1)
     cfg = Config(CONFIG_FILE)
-    logger.info("config file: {}", CONFIG_FILE)
     mestor = MeST(cfg)
     mestor.run()
 
@@ -56,9 +58,9 @@ def main():
     os.system("mkdir -p ~/.cache/")
     if cmd == "start":
         if is_memest_daemon_running():
-            logger.info("memest is running")
+            print("memest is running")
         else:
-            logger.info("start memest")
+            print("start memest")
             os.system('nohup memest --daemon >> /dev/null 2>&1 &')
     elif cmd == "status":
         if is_memest_daemon_running():
