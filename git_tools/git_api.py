@@ -16,17 +16,32 @@ def get_all_remotes(work_dir: str):
     return list(set(remotes))
 
 
-def ensure_bare_repository(local_rep):
-    address = local_rep.address
+def get_local_branch_list(work_dir):
+    git_command = ["git", "branch"]
+    output = subprocess.check_output(git_command, text=True, cwd=work_dir)
+    branch_list = [line.split(" ")[-1] for line in output.splitlines()]
+    return branch_list
+
+
+def good_rep_data(rep_data):
+    return rep_data.alias and rep_data.address and rep_data.work_dir
+
+
+def ensure_bare_repository(rep_data):
+    if not good_rep_data(rep_data):
+        return
+    address = rep_data.address
     if os.path.isdir(address) and os.path.isfile(os.path.join(address, 'config')):
         # logger.info("Address '{}' is already a bare Git repository.", local_rep.address)
         pass
     else:
-        cmd = ['git', 'init', '--bare', local_rep.address]
+        cmd = ['git', 'init', '--bare', rep_data.address]
         subprocess.run(cmd, check=True)
 
 
 def init_rep(rep_data: RepData):
+    if not good_rep_data(rep_data):
+        return
     mkdir(rep_data.work_dir)
     logger.info("[{}] init_rep", rep_data.alias)
     git_dir = os.path.join(rep_data.work_dir, '.git')
@@ -53,38 +68,18 @@ def init_rep(rep_data: RepData):
 
 
 def fetch(rep_data: RepData):
+    if not good_rep_data(rep_data):
+        return
+    cmd = []
     if rep_data.key_file:
-        key_file = rep_data.key_file
-        cmd = ['ssh-agent', 'sh', '-c', f'GIT_SSH_COMMAND="ssh -i {key_file}" git fetch {rep_data.alias}']
-    else:
-        cmd = ['git', 'fetch', rep_data.alias]
+        git_ssh_command = f'ssh -i "{rep_data.key_file}"'
+        cmd.append(git_ssh_command)
+    cmd += ['git', 'fetch', rep_data.alias]
     try:
         result = subprocess.run(cmd, cwd=rep_data.work_dir, check=True, stdout=subprocess.DEVNULL)
     except Exception as e:
         logger.error("{} {}", e, result)
     update_branch_list(rep_data)
-
-
-def get_remote_branches(work_dir, alias):
-    """
-    Given a local working directory (work_dir) and a remote alias (alias),
-    return a list of all branches associated with the specified remote.
-
-    Args:
-        work_dir (str): Path to the local Git repository.
-        alias (str): Name of the remote to fetch branches from.
-
-    Returns:
-        list[str]: List containing the names of all branches from the specified remote.
-    """
-
-    # Execute the 'git branch -r' command to list all remote branches
-
-    # Run the command and capture its output
-
-    # Filter the output to keep only the branches belonging to the given remote alias
-
-    # Extract the branch names by removing the remote prefix (e.g., "alias/")
 
 
 def update_branch_list(rep_data: RepData):
@@ -97,21 +92,21 @@ def update_branch_list(rep_data: RepData):
     logger.info("remote_branches {}", rep_data.branch_list)
 
 
-def get_local_branch_list(work_dir):
-    git_command = ["git", "branch"]
-    output = subprocess.check_output(git_command, text=True, cwd=work_dir)
-    branch_list = [line.split(" ")[-1] for line in output.splitlines()]
-    return branch_list
-
-
 def push(rep_data: RepData):
+    if not good_rep_data(rep_data):
+        return
     local_branch_list = get_local_branch_list(rep_data.work_dir)
     logger.info("[{}] local_branch_list:{}", rep_data.alias, local_branch_list)
     work_dir = rep_data.work_dir
     for branch in local_branch_list:
         checkout_command = ['git', 'checkout', branch]
         subprocess.run(checkout_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
-        push_command = ['git', 'push', rep_data.alias, branch]
+        push_command = []
+        if rep_data.key_file:
+            git_ssh_command = f'ssh -i "{rep_data.key_file}"'
+            push_command.append(git_ssh_command)
+
+        push_command += ['git', 'push', rep_data.alias, branch]
         logger.info("{}", " ".join(push_command))
         try:
             result = subprocess.run(push_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
@@ -120,6 +115,8 @@ def push(rep_data: RepData):
 
 
 def merge_remote_branches(rep_data):
+    if not good_rep_data(rep_data):
+        return
     work_dir = rep_data.work_dir
     branch_list = rep_data.branch_list
     alias = rep_data.alias
