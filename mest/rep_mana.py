@@ -6,7 +6,6 @@ from loguru import logger
 import git_tools
 
 
-@logger.catch
 def one_cycle_task(rep_data):
     logger.info("one_cycle_task for {}", rep_data.alias)
     git_tools.api.init_rep(rep_data)
@@ -33,6 +32,7 @@ class MeST:
     def init_rep_set(self):
         all_rep = [i for i in self.cfg.get_sections() if i != "default"]
         logger.info("all_rep: {}", all_rep)
+        self.rep_set = {}
         for k in all_rep:
             work_dir = os.path.join(self.cache_dir, k)
             address = os.path.expanduser(self.cfg.get_value(k + ".local"))

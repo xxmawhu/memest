@@ -37,6 +37,7 @@ def ensure_bare_repository(rep_data):
     else:
         cmd = ['git', 'init', '--bare', rep_data.address]
         subprocess.run(cmd, check=True)
+        logger.info("init bare repository:{}", rep_data.address)
 
 
 def init_rep(rep_data: RepData):
