@@ -44,12 +44,12 @@ def init_rep(rep_data: RepData):
     if not good_rep_data(rep_data):
         return
     mkdir(rep_data.work_dir)
-    logger.info("[{}] init_rep", rep_data.alias)
+    logger.info("[{}] init_rep", rep_data.address)
     git_dir = os.path.join(rep_data.work_dir, '.git')
     is_git_repo = os.path.isdir(git_dir)
     if not is_git_repo:
         logger.info("Initializing {}", rep_data.work_dir)
-        subprocess.run(['git', 'init'], cwd=rep_data.work_dir, check=False, Text=True)
+        subprocess.run(['git', 'init'], cwd=rep_data.work_dir, check=False, text=True)
         logger.info("Repository {} initialized.", rep_data.work_dir)
     # 添加远程仓库
     if rep_data.alias == "":
@@ -63,7 +63,7 @@ def init_rep(rep_data: RepData):
     # 增加remote 仓库
     all_remotes = get_all_remotes(rep_data.work_dir)
     if rep_data.alias not in all_remotes:
-        logger.info("add remote {}", rep_data.alias)
+        logger.info("{} as remote", rep_data.address)
         cmd = ['git', 'remote', 'add', rep_data.alias, rep_data.address]
         subprocess.run(cmd, cwd=rep_data.work_dir, check=True)
 
