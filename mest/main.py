@@ -11,11 +11,11 @@ from loguru import logger
 from .config import Config
 from .rep_mana import MeST
 
-# logger.remove(handler_id=None)
+logger.remove(handler_id=None)
 logger.add(
     os.path.expanduser("~/.cache/memest"),
     rotation="00:00",
-    retention=datetime.timedelta(days=7),
+    retention=datetime.timedelta(days=1),
     backtrace=True,
     diagnose=True,
     enqueue=True,
@@ -53,6 +53,7 @@ def main():
         print(USAGE)
         exit(1)
     cmd = sys.argv[1]
+    os.system("mkdir -p ~/.cache/")
     if cmd == "start":
         if is_memest_daemon_running():
             logger.info("memest is running")
