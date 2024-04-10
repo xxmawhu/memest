@@ -9,6 +9,10 @@ features
 * The synchronization process runs entirely in the background, ensuring that branches across all repositories remain consistently up-to-date.
 * Users only interact with the local bare repository, enjoying a smooth experience without noticeable network latency, making it seem as though they are working locally despite the syncing of multiple repositories.
 
+Install
+```
+pip install memest
+```
 
 Usage
 -----------------
