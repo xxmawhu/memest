@@ -1,0 +1,12 @@
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0  # 可以指定特定版本或引用latest标签
+    hooks:
+      - id: check-added-large-files  # 这个钩子可以检查提交的大文件
+        args: [--maxkb=2048]  # 设置最大文件大小为2MB
+
+  - repo: https://github.com/psf/black
+    rev: 24.3.0
+    hooks:
+      - id: black
