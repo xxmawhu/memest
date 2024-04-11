@@ -19,8 +19,8 @@ Usage
 
 1. setup config for `memest`
 
-The unique config file is `~/.config/memest/config.ini`
-You can customize your own configurations, and here's an example:
+The unique config file is `~/.config/memest/config.ini`.
+You can customize your own configurations, and here's an example,
 ```
 [default]
 ; Repository synchronization check interval
@@ -38,9 +38,16 @@ local=~/.local/rep/example.git
 remote=git@github.com:xxmawhu/example.git|~/.ssh/id_rsa,
        git@githuh.com:xxmawhu/another.git,
 ```
-2. start
+2. start memest
 
 ```bash
 memest start
 ```
+
+3. others
+```bash
+memest restart 
+memest stop
+memest status
+````
 
