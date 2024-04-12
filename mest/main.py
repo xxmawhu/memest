@@ -35,7 +35,6 @@ def init_check():
 
 
 def show_status():
-    init_check()
     if is_memest_daemon_running():
         print("memest is running")
     else:
