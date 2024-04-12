@@ -7,7 +7,6 @@ ENV = os.environ.copy()
 ENV["LD_LIBRARY_PATH"] = ""
 ENV["PATH"] = "/usr/bin:/bin:/usr/local/bin"
 del ENV["OPENSSL_DIR"]
-print(ENV)
 
 
 def mkdir(path):
@@ -113,8 +112,12 @@ def update_branch_list(rep_data: RepData):
     git_command = ["git", "branch", "-r"]
     output = subprocess.check_output(git_command, text=True, cwd=work_dir)
     alias = rep_data.alias
-    remote_branches = [line.strip() for line in output.splitlines() if line.strip().startswith(alias)]
-    rep_data.branch_list = [branch_name[len(alias) + 1:] for branch_name in remote_branches]
+    remote_branches = [
+        line.strip() for line in output.splitlines() if line.strip().startswith(alias)
+    ]
+    rep_data.branch_list = [
+        branch_name[len(alias) + 1 :] for branch_name in remote_branches
+    ]
     # logger.info("remote_branches {}", rep_data.branch_list)
 
 
@@ -165,5 +168,9 @@ def merge_remote_branches(rep_data):
     for branch in branch_list:
         checkout_command = ["git", "checkout", branch]
         merge_command = ["git", "merge", f"{alias}/{branch}"]
-        subprocess.run(checkout_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
-        subprocess.run(merge_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
+        subprocess.run(
+            checkout_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL
+        )
+        subprocess.run(
+            merge_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL
+        )
