@@ -3,6 +3,12 @@ import subprocess
 from loguru import logger
 from .base_dtypes import RepData, RepCacheData
 
+ENV = os.environ.copy()
+ENV["LD_LIBRARY_PATH"] = ""
+ENV["PATH"] = "/usr/bin:/bin:/usr/local/bin"
+del ENV["OPENSSL_DIR"]
+print(ENV)
+
 
 def mkdir(path):
     if not os.path.exists(path):
@@ -11,7 +17,12 @@ def mkdir(path):
 
 def get_all_remotes(work_dir: str):
     cmd = ["git", "remote", "-v"]
-    result = subprocess.check_output(cmd, cwd=work_dir, text=True).splitlines()
+    result = subprocess.check_output(
+        cmd,
+        cwd=work_dir,
+        text=True,
+        env=ENV,
+    ).splitlines()
     remotes = [line.split("\t")[0] for line in result]
     return list(set(remotes))
 
@@ -80,6 +91,7 @@ def fetch(rep_data: RepData):
     cmd += ["git", "fetch", rep_data.alias]
     result = subprocess.run(
         cmd,
+        env=ENV,
         cwd=rep_data.work_dir,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
@@ -101,12 +113,8 @@ def update_branch_list(rep_data: RepData):
     git_command = ["git", "branch", "-r"]
     output = subprocess.check_output(git_command, text=True, cwd=work_dir)
     alias = rep_data.alias
-    remote_branches = [
-        line.strip() for line in output.splitlines() if line.strip().startswith(alias)
-    ]
-    rep_data.branch_list = [
-        branch_name[len(alias) + 1 :] for branch_name in remote_branches
-    ]
+    remote_branches = [line.strip() for line in output.splitlines() if line.strip().startswith(alias)]
+    rep_data.branch_list = [branch_name[len(alias) + 1:] for branch_name in remote_branches]
     # logger.info("remote_branches {}", rep_data.branch_list)
 
 
@@ -120,7 +128,10 @@ def push(rep_data: RepData):
     for branch in local_branch_list:
         checkout_command = ["git", "checkout", branch]
         subprocess.run(
-            checkout_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL
+            checkout_command,
+            cwd=work_dir,
+            check=True,
+            stdout=subprocess.DEVNULL,
         )
         push_command = []
         if rep_data.key_file:
@@ -128,12 +139,21 @@ def push(rep_data: RepData):
             push_command.append(git_ssh_command)
 
         push_command += ["git", "push", rep_data.alias, branch]
-        try:
-            result = subprocess.run(
-                push_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL
+        result = subprocess.run(
+            push_command,
+            cwd=work_dir,
+            env=ENV,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        if result.returncode != 0:
+            logger.error(
+                "pus to {} fail, code:{} reason:{}",
+                rep_data.address,
+                result.returncode,
+                result.stderr.decode("utf-8"),
             )
-        except Exception as e:
-            logger.error("fail to pull {} {}", rep_data.address, e)
 
 
 def merge_remote_branches(rep_data):
@@ -145,9 +165,5 @@ def merge_remote_branches(rep_data):
     for branch in branch_list:
         checkout_command = ["git", "checkout", branch]
         merge_command = ["git", "merge", f"{alias}/{branch}"]
-        subprocess.run(
-            checkout_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL
-        )
-        subprocess.run(
-            merge_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL
-        )
+        subprocess.run(checkout_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
+        subprocess.run(merge_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
