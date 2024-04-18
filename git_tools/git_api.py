@@ -6,7 +6,8 @@ from .base_dtypes import RepData, RepCacheData
 ENV = os.environ.copy()
 ENV["LD_LIBRARY_PATH"] = ""
 ENV["PATH"] = "/usr/bin:/bin:/usr/local/bin"
-del ENV["OPENSSL_DIR"]
+if "OPENSSL_DIR" in ENV:
+    del ENV["OPENSSL_DIR"]
 
 
 def mkdir(path):
