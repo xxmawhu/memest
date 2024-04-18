@@ -35,10 +35,7 @@ class RepData:
         self.work_dir = work_dir
         self.key_file = key_file
         self.timeout = timeout or 600
-        if "@" in address:
-            self.alias = unique_id(address)
-        else:
-            self.alias = "local"
+        self.alias = unique_id(address)
 
 
 class RepCacheData:
