@@ -168,10 +168,27 @@ def merge_remote_branches(rep_data):
     alias = rep_data.alias
     for branch in branch_list:
         checkout_command = ["git", "checkout", branch]
-        merge_command = ["git", "merge", f"{alias}/{branch}"]
         subprocess.run(
             checkout_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL
         )
         subprocess.run(
-            merge_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL
+            ["git", "merge", "--no-commit" f"{alias}/{branch}"],
+            cwd=work_dir,
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        subprocess.run(
+            ["git", "add", "."],
+            cwd=work_dir,
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        subprocess.run(
+            ["git", "commit" "-m", "Force merged with conflicts"],
+            cwd=work_dir,
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
         )
