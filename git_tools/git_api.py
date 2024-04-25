@@ -138,9 +138,11 @@ def push(rep_data: RepData):
             stdout=subprocess.DEVNULL,
         )
         push_command = []
+        pull_command = []
         if rep_data.key_file:
             git_ssh_command = f'ssh -i "{rep_data.key_file}"'
             push_command.append(git_ssh_command)
+            pull_command.append(git_ssh_command)
 
         pull_command += ["git", "pull"]
         result = subprocess.run(
