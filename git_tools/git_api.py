@@ -144,7 +144,7 @@ def push(rep_data: RepData):
             push_command.append(git_ssh_command)
             pull_command.append(git_ssh_command)
 
-        pull_command += ["git", "pull"]
+        pull_command += ["git", "pull", "--all"]
         result = subprocess.run(
             pull_command,
             cwd=work_dir,
