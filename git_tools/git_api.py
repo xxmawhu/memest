@@ -29,6 +29,7 @@ def get_all_remotes(work_dir: str):
 
 def check_remotes(work_dir, remote_list):
     alias_list = [data.alias for data in remote_list]
+    alias_list += ["local"]
     currency_remotes = get_all_remotes(work_dir)
     remotes_to_removed = [i for i in currency_remotes if i not in alias_list]
     for remote in remotes_to_removed:
@@ -155,12 +156,22 @@ def push(rep_data: RepData):
     work_dir = rep_data.work_dir
     for branch in local_branch_list:
         checkout_command = ["git", "checkout", branch]
-        subprocess.run(
+        logger.info("run {}", checkout_command)
+        result = subprocess.run(
             checkout_command,
             cwd=work_dir,
-            check=True,
             stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            check=False,
         )
+        if result.returncode != 0:
+            logger.error(
+                "fail, code:{} reason:{}",
+                result.returncode,
+                result.stderr.decode("utf-8"),
+            )
+            continue
+
         push_command = []
         pull_command = []
         if rep_data.key_file:
@@ -168,7 +179,8 @@ def push(rep_data: RepData):
             push_command.append(git_ssh_command)
             pull_command.append(git_ssh_command)
 
-        pull_command += ["git", "pull", "--all"]
+        pull_command += ["git", "pull", rep_data.alias, branch]
+        logger.info("run {}", pull_command)
         result = subprocess.run(
             pull_command,
             cwd=work_dir,
@@ -186,6 +198,7 @@ def push(rep_data: RepData):
             )
 
         push_command += ["git", "push", rep_data.alias, branch]
+        logger.info("run {}", push_command)
         result = subprocess.run(
             push_command,
             cwd=work_dir,
@@ -212,7 +225,12 @@ def merge_remote_branches(rep_data):
     for branch in branch_list:
         checkout_command = ["git", "checkout", branch]
         subprocess.run(
-            checkout_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL
+            checkout_command,
+            cwd=work_dir,
+            env=ENV,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            check=False,
         )
         subprocess.run(
             ["git", "merge", "--no-commit" f"{alias}/{branch}"],

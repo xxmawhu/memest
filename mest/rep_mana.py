@@ -54,7 +54,7 @@ class MeST:
             self.rep_set[k] = git_tools.RepCacheData(
                 local=local_data, remote=remote_list
             )
-            git_tools.check_remotes(work_dir, remote_list)
+            git_tools.api.check_remotes(work_dir, remote_list)
 
     def check(self):
         if self.cfg.update_config():
