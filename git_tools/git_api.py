@@ -142,6 +142,23 @@ def push(rep_data: RepData):
             git_ssh_command = f'ssh -i "{rep_data.key_file}"'
             push_command.append(git_ssh_command)
 
+        pull_command += ["git", "pull"]
+        result = subprocess.run(
+            pull_command,
+            cwd=work_dir,
+            env=ENV,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        if result.returncode != 0:
+            logger.error(
+                "pull to {} fail, code:{} reason:{}",
+                rep_data.address,
+                result.returncode,
+                result.stderr.decode("utf-8"),
+            )
+
         push_command += ["git", "push", rep_data.alias, branch]
         result = subprocess.run(
             push_command,
@@ -153,7 +170,7 @@ def push(rep_data: RepData):
         )
         if result.returncode != 0:
             logger.error(
-                "pus to {} fail, code:{} reason:{}",
+                "push to {} fail, code:{} reason:{}",
                 rep_data.address,
                 result.returncode,
                 result.stderr.decode("utf-8"),
