@@ -27,6 +27,30 @@ def get_all_remotes(work_dir: str):
     return list(set(remotes))
 
 
+def check_remotes(work_dir, remote_list):
+    alias_list = [data.alias for data in remote_list]
+    currency_remotes = get_all_remotes(work_dir)
+    remotes_to_removed = [i for i in currency_remotes if i not in alias_list]
+    for remote in remotes_to_removed:
+        git_command = ["git", "remote", "remove", remote]
+        result = subprocess.run(
+            git_command,
+            cwd=work_dir,
+            env=ENV,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        if result.returncode == 0:
+            logger.info("git remote remove {} success", remote)
+        else:
+            logger.error(
+                "git remote remove {} fail! reason:{}",
+                remote,
+                result.stderr.decode("utf-8"),
+            )
+
+
 def get_local_branch_list(work_dir):
     git_command = ["git", "branch"]
     output = subprocess.check_output(git_command, text=True, cwd=work_dir)

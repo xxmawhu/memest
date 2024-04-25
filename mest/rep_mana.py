@@ -46,10 +46,15 @@ class MeST:
                 key_file = ""
                 if "|" in remote_cfg:
                     key_file = os.path.expanduser(remote_cfg.split("|")[1].strip())
-                remote_data = git_tools.RepData(address=address, work_dir=work_dir, key_file=key_file)
+                remote_data = git_tools.RepData(
+                    address=address, work_dir=work_dir, key_file=key_file
+                )
                 remote_list.append(remote_data)
                 logger.info("add:\n{}", remote_data)
-            self.rep_set[k] = git_tools.RepCacheData(local=local_data, remote=remote_list)
+            self.rep_set[k] = git_tools.RepCacheData(
+                local=local_data, remote=remote_list
+            )
+            git_tools.check_remotes(work_dir, remote_list)
 
     def check(self):
         if self.cfg.update_config():
