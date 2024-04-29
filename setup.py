@@ -24,7 +24,7 @@ def get_latest_commit_hash():
 
 def get_today_date():
     today = datetime.datetime.now()
-    return today.strftime("%Y.%m.%d")
+    return today.strftime("%Y.%m")
 
 
 VERSION = get_today_date().replace(".0", ".")
@@ -35,6 +35,7 @@ if HASH is None:
 VERSION += "." + HASH[:6]
 
 if sys.argv[1] == "publish":
+    print("version:", VERSION)
     os.system("rm -rf dist/")
     os.system("python3 setup.py bdist_wheel")
     os.system("twine upload dist/*")
