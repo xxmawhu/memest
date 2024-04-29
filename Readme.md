@@ -12,7 +12,7 @@ Features
 Install
 -----------------
 ```
-pip install memest
+pip install memest -i 
 ```
 
 Usage

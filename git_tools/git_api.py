@@ -35,7 +35,17 @@ def get_local_branch_list(work_dir):
 
 
 def good_rep_data(rep_data):
-    return rep_data.alias and rep_data.address and rep_data.work_dir
+    ss = ""
+    if rep_data.alias:
+        s += f" alias:{rep_data.alias}"
+    if rep_data.address:
+        s += f" address:{rep_data.address}"
+    if rep_data.work_dir:
+        s += f" address:{rep_data.work_dir}"
+    if rep_data.alias and rep_data.address and rep_data.work_dir:
+        return True
+    else:
+        logger.error("{} is not good_rep_data", ss)
 
 
 def ensure_bare_repository(rep_data):
