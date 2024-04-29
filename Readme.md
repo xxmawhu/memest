@@ -12,7 +12,7 @@ Features
 Install
 -----------------
 ```
-pip install memest -i 
+pip install memest -i https://pypi.python.org/simple
 ```
 
 Usage
