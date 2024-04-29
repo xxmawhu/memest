@@ -44,19 +44,22 @@ def kill_process_tree(pid):
     while True:
         if len(pid_list) == 0:
             break
-        tmp_pid = pid_list.pop(0)
-        if not psutil.pid_exists(tmp_pid):
-            continue
-        parent = psutil.Process(tmp_pid)
-        if parent is not None:
-            children = parent.children(recursive=False)
-            if children is not None:
-                for child in children:
-                    pid_list.append(child.pid)
-            if parent.cmdline is not None:
-                cmdline = " ".join(parent.cmdline())
-                print(f"kill {parent.pid} {cmdline}")
-            parent.send_signal(sig)
+        try:
+            tmp_pid = pid_list.pop(0)
+            if not psutil.pid_exists(tmp_pid):
+                continue
+            parent = psutil.Process(tmp_pid)
+            if parent is not None:
+                children = parent.children(recursive=False)
+                if children is not None:
+                    for child in children:
+                        pid_list.append(child.pid)
+                if parent.cmdline is not None:
+                    cmdline = " ".join(parent.cmdline())
+                    print(f"kill {parent.pid} {cmdline}")
+                parent.send_signal(sig)
+        except Exception:
+            print(e)
 
 
 def init_check():
