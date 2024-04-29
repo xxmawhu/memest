@@ -27,31 +27,6 @@ def get_all_remotes(work_dir: str):
     return list(set(remotes))
 
 
-def check_remotes(work_dir, remote_list):
-    alias_list = [data.alias for data in remote_list]
-    alias_list += ["local"]
-    currency_remotes = get_all_remotes(work_dir)
-    remotes_to_removed = [i for i in currency_remotes if i not in alias_list]
-    for remote in remotes_to_removed:
-        git_command = ["git", "remote", "remove", remote]
-        result = subprocess.run(
-            git_command,
-            cwd=work_dir,
-            env=ENV,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            check=False,
-        )
-        if result.returncode == 0:
-            logger.info("git remote remove {} success", remote)
-        else:
-            logger.error(
-                "git remote remove {} fail! reason:{}",
-                remote,
-                result.stderr.decode("utf-8"),
-            )
-
-
 def get_local_branch_list(work_dir):
     git_command = ["git", "branch"]
     output = subprocess.check_output(git_command, text=True, cwd=work_dir)
@@ -74,6 +49,24 @@ def ensure_bare_repository(rep_data):
         cmd = ["git", "init", "--bare", rep_data.address]
         subprocess.run(cmd, check=True)
         logger.info("init bare repository:{}", rep_data.address)
+
+
+def is_git_rep(work_dir):
+    if not os.path.exists(work_dir):
+        return False
+    cmd = ["git", "status"]
+    result = subprocess.run(
+        cmd,
+        env=ENV,
+        cwd=work_dir,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    if result.returncode == 0:
+        return True
+    logger.info("{} is not a git repository", work_dir)
+    return False
 
 
 def init_rep(rep_data: RepData):
@@ -253,3 +246,36 @@ def merge_remote_branches(rep_data):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
+
+
+def check_remotes(rep_cache_data: RepCacheData):
+    if rep_cache_data.local is None:
+        return
+    work_dir = rep_cache_data.local.work_dir
+    if not os.path.exists(work_dir):
+        logger.error("{} not exists", work_dir)
+    if not is_git_rep(work_dir):
+        return
+    remote_list = rep_cache_data.remote_rep_list
+    alias_list = [data.alias for data in remote_list]
+    alias_list += ["local"]
+    currency_remotes = get_all_remotes(work_dir)
+    remotes_to_removed = [i for i in currency_remotes if i not in alias_list]
+    for remote in remotes_to_removed:
+        git_command = ["git", "remote", "remove", remote]
+        result = subprocess.run(
+            git_command,
+            cwd=work_dir,
+            env=ENV,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        if result.returncode == 0:
+            logger.info("git remote remove {} success", remote)
+        else:
+            logger.error(
+                "git remote remove {} fail! reason:{}",
+                remote,
+                result.stderr.decode("utf-8"),
+            )
