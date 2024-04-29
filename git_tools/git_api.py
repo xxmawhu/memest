@@ -6,8 +6,8 @@ from .base_dtypes import RepData, RepCacheData
 ENV = os.environ.copy()
 ENV["LD_LIBRARY_PATH"] = ""
 ENV["PATH"] = "/usr/bin:/bin:/usr/local/bin"
-del ENV["OPENSSL_DIR"]
-print(ENV)
+if "OPENSSL_DIR" in ENV:
+    del ENV["OPENSSL_DIR"]
 
 
 def mkdir(path):
@@ -59,6 +59,24 @@ def ensure_bare_repository(rep_data):
         cmd = ["git", "init", "--bare", rep_data.address]
         subprocess.run(cmd, check=True)
         logger.info("init bare repository:{}", rep_data.address)
+
+
+def is_git_rep(work_dir):
+    if not os.path.exists(work_dir):
+        return False
+    cmd = ["git", "status"]
+    result = subprocess.run(
+        cmd,
+        env=ENV,
+        cwd=work_dir,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    if result.returncode == 0:
+        return True
+    logger.info("{} is not a git repository", work_dir)
+    return False
 
 
 def init_rep(rep_data: RepData):
@@ -123,8 +141,12 @@ def update_branch_list(rep_data: RepData):
     git_command = ["git", "branch", "-r"]
     output = subprocess.check_output(git_command, text=True, cwd=work_dir)
     alias = rep_data.alias
-    remote_branches = [line.strip() for line in output.splitlines() if line.strip().startswith(alias)]
-    rep_data.branch_list = [branch_name[len(alias) + 1:] for branch_name in remote_branches]
+    remote_branches = [
+        line.strip() for line in output.splitlines() if line.strip().startswith(alias)
+    ]
+    rep_data.branch_list = [
+        branch_name[len(alias) + 1 :] for branch_name in remote_branches
+    ]
     # logger.info("remote_branches {}", rep_data.branch_list)
 
 
@@ -137,18 +159,49 @@ def push(rep_data: RepData):
     work_dir = rep_data.work_dir
     for branch in local_branch_list:
         checkout_command = ["git", "checkout", branch]
-        subprocess.run(
+        logger.info("run {}", checkout_command)
+        result = subprocess.run(
             checkout_command,
             cwd=work_dir,
-            check=True,
             stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            check=False,
         )
+        if result.returncode != 0:
+            logger.error(
+                "fail, code:{} reason:{}",
+                result.returncode,
+                result.stderr.decode("utf-8"),
+            )
+            continue
+
         push_command = []
+        pull_command = []
         if rep_data.key_file:
             git_ssh_command = f'ssh -i "{rep_data.key_file}"'
             push_command.append(git_ssh_command)
+            pull_command.append(git_ssh_command)
+
+        pull_command += ["git", "pull", rep_data.alias, branch]
+        logger.info("run {}", pull_command)
+        result = subprocess.run(
+            pull_command,
+            cwd=work_dir,
+            env=ENV,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        if result.returncode != 0:
+            logger.error(
+                "pull to {} fail, code:{} reason:{}",
+                rep_data.address,
+                result.returncode,
+                result.stderr.decode("utf-8"),
+            )
 
         push_command += ["git", "push", rep_data.alias, branch]
+        logger.info("run {}", push_command)
         result = subprocess.run(
             push_command,
             cwd=work_dir,
@@ -159,7 +212,7 @@ def push(rep_data: RepData):
         )
         if result.returncode != 0:
             logger.error(
-                "pus to {} fail, code:{} reason:{}",
+                "push to {} fail, code:{} reason:{}",
                 rep_data.address,
                 result.returncode,
                 result.stderr.decode("utf-8"),
@@ -174,6 +227,65 @@ def merge_remote_branches(rep_data):
     alias = rep_data.alias
     for branch in branch_list:
         checkout_command = ["git", "checkout", branch]
-        merge_command = ["git", "merge", f"{alias}/{branch}"]
-        subprocess.run(checkout_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
-        subprocess.run(merge_command, cwd=work_dir, check=True, stdout=subprocess.DEVNULL)
+        subprocess.run(
+            checkout_command,
+            cwd=work_dir,
+            env=ENV,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        subprocess.run(
+            ["git", "merge", "--no-commit" f"{alias}/{branch}"],
+            cwd=work_dir,
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        subprocess.run(
+            ["git", "add", "."],
+            cwd=work_dir,
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        subprocess.run(
+            ["git", "commit" "-m", "Force merged with conflicts"],
+            cwd=work_dir,
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+
+def check_remotes(rep_cache_data: RepCacheData):
+    if rep_cache_data.local is None:
+        return
+    work_dir = rep_cache_data.local.work_dir
+    if not os.path.exists(work_dir):
+        logger.error("{} not exists", work_dir)
+    if not is_git_rep(work_dir):
+        return
+    remote_list = rep_cache_data.remote_rep_list
+    alias_list = [data.alias for data in remote_list]
+    alias_list += ["local"]
+    currency_remotes = get_all_remotes(work_dir)
+    remotes_to_removed = [i for i in currency_remotes if i not in alias_list]
+    for remote in remotes_to_removed:
+        git_command = ["git", "remote", "remove", remote]
+        result = subprocess.run(
+            git_command,
+            cwd=work_dir,
+            env=ENV,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        if result.returncode == 0:
+            logger.info("git remote remove {} success", remote)
+        else:
+            logger.error(
+                "git remote remove {} fail! reason:{}",
+                remote,
+                result.stderr.decode("utf-8"),
+            )

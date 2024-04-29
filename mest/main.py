@@ -13,8 +13,9 @@ from .config import Config
 from .rep_mana import MeST
 
 logger.remove(handler_id=None)
+LOG_FILE = os.path.expanduser("~/.cache/memest")
 logger.add(
-    os.path.expanduser("~/.cache/memest"),
+    LOG_FILE,
     rotation="00:00",
     retention=datetime.timedelta(days=1),
     backtrace=True,
@@ -26,6 +27,35 @@ cmd: start, status, stop, restart
 """
 
 CONFIG_FILE = os.path.expanduser("~/.config/memest/config.ini")
+
+
+def get_log_error():
+    error_lines = []
+    for line in open(LOG_FILE, "r").read().splitlines():
+        if "ERROR" in line:
+            error_lines.append(line)
+    content = "\n".join(error_lines[-10:])
+    return content
+
+
+def kill_process_tree(pid):
+    sig = signal.SIGKILL
+    pid_list = [pid]
+    while True:
+        if len(pid_list) == 0:
+            break
+        tmp_pid = pid_list.pop(0)
+        if not psutil.pid_exists(tmp_pid):
+            continue
+        parent = psutil.Process(tmp_pid)
+        if parent is not None:
+            children = parent.children(recursive=False)
+            if children is not None:
+                for child in children:
+                    pid_list.append(child.pid)
+            cmdline = " ".join(parent.cmdline())
+            print(f"kill {parent.pid} {cmdline}")
+            parent.send_signal(sig)
 
 
 def init_check():
@@ -43,6 +73,10 @@ def show_status():
     cfg = Config(CONFIG_FILE)
     all_rep = [i for i in cfg.get_sections() if i != "default"]
     print("sync:", all_rep)
+    err_lines = get_log_error()
+    if err_lines:
+        print(err_lines)
+        print(f"more details in {LOG_FILE}")
 
 
 def is_memest_daemon_running():
@@ -57,7 +91,8 @@ def stop_memest_daemon():
     for process in psutil.process_iter(["pid", "name", "cmdline"]):
         cmdline = " ".join(process.info["cmdline"])
         if "--daemon" in cmdline and "memest" in cmdline:
-            os.kill(process.info["pid"], signal.SIGKILL)
+            pid = process.info["pid"]
+            kill_process_tree(int(pid))
 
 
 def run_forever():
