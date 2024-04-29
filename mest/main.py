@@ -53,8 +53,9 @@ def kill_process_tree(pid):
             if children is not None:
                 for child in children:
                     pid_list.append(child.pid)
-            cmdline = " ".join(parent.cmdline())
-            print(f"kill {parent.pid} {cmdline}")
+            if parent.cmdline is not None:
+                cmdline = " ".join(parent.cmdline())
+                print(f"kill {parent.pid} {cmdline}")
             parent.send_signal(sig)
 
 
@@ -89,6 +90,8 @@ def is_memest_daemon_running():
 
 def stop_memest_daemon():
     for process in psutil.process_iter(["pid", "name", "cmdline"]):
+        if process.info["cmdline"] is None:
+            continue
         cmdline = " ".join(process.info["cmdline"])
         if "--daemon" in cmdline and "memest" in cmdline:
             pid = process.info["pid"]
