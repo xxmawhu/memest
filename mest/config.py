@@ -2,14 +2,16 @@ import time
 import hashlib
 import configparser
 
+from loguru import logger
 
-def calculate_file_hash(file_path, algorithm='md5'):
+
+def calculate_file_hash(file_path, algorithm="md5"):
     # 创建哈希对象
     hasher = hashlib.new(algorithm)
 
     # 打开文件并逐块读取数据进行哈希计算
-    with open(file_path, 'rb') as file:
-        for chunk in iter(lambda: file.read(4096), b''):
+    with open(file_path, "rb") as file:
+        for chunk in iter(lambda: file.read(4096), b""):
             hasher.update(chunk)
 
     # 返回哈希值的十六进制表示
@@ -18,10 +20,13 @@ def calculate_file_hash(file_path, algorithm='md5'):
 
 class Config:
 
-    def __init__(self, config_file: str = 'config.ini') -> None:
+    def __init__(self, config_file: str = "config.ini") -> None:
         self.config_file_name = config_file
         cfp = configparser.ConfigParser()
-        cfp.read(config_file, encoding='utf-8')
+        try:
+            cfp.read(self.config_file_name, encoding="utf-8")
+        except Exception as e:
+            logger.error("fail to read {}, due to {}", self.config_file_name, e)
         self._cfp = cfp
         self.md5_hash = calculate_file_hash(config_file)
 
@@ -30,10 +35,13 @@ class Config:
         if md5_hash == self.md5_hash:
             return False
 
-        self.md5_hash = md5_hash
         cfp = configparser.ConfigParser()
-        cfp.read(self.config_file_name, encoding='utf-8')
-        self._cfp = cfp
+        try:
+            cfp.read(self.config_file_name, encoding="utf-8")
+            self._cfp = cfp
+            self.md5_hash = md5_hash
+        except Exception as e:
+            logger.error("fail to read {}, due to {}", self.config_file_name, e)
         return True
 
     def get_sections(self):
@@ -46,8 +54,8 @@ class Config:
         [section]
         option=value
         """
-        if '.' in key:
-            ll = key.split('.')
+        if "." in key:
+            ll = key.split(".")
             section = ll[0]
             option = ll[1]
             if self._cfp.has_option(section, option):
@@ -104,8 +112,8 @@ class Config:
         [section]
         option=value
         """
-        if '.' in key:
-            ll = key.split('.')
+        if "." in key:
+            ll = key.split(".")
             section = ll[0]
             option = ll[1]
             if self._cfp.has_option(section, option):
@@ -120,8 +128,8 @@ class Config:
         [section]
         option=value
         """
-        if '.' in key:
-            ll = key.split('.')
+        if "." in key:
+            ll = key.split(".")
             section = ll[0]
             option = ll[1]
             if self._cfp.has_option(section, option):
@@ -136,8 +144,8 @@ class Config:
         [section]
         option=value
         """
-        if '.' in key:
-            ll = key.split('.')
+        if "." in key:
+            ll = key.split(".")
             section = ll[0]
             option = ll[1]
             if self._cfp.has_option(section, option):
