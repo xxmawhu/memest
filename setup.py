@@ -8,14 +8,11 @@ from setuptools import find_packages
 
 def get_latest_commit_hash():
     try:
-        # 使用git log命令获取最新一次提交的SHA-1值，-n 1表示只获取最近的一条提交记录
-        # --pretty=format:%H指定了输出格式，只输出commit的SHA-1值
         output = subprocess.check_output(
             ["git", "log", "-n", "1", "--pretty=format:%H"]
         )
-        # 将输出的字节串转换为字符串，并去掉末尾的换行符
         commit_hash = output.decode("utf-8").strip()
-        return commit_hash
+        return "".join(i for i in commit_hash if i in "123456789")
     except subprocess.CalledProcessError as e:
         return None
     except FileNotFoundError:
