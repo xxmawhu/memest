@@ -13,8 +13,9 @@ from .config import Config
 from .rep_mana import MeST
 
 logger.remove(handler_id=None)
+LOG_FILE = os.path.expanduser("~/.cache/memest")
 logger.add(
-    os.path.expanduser("~/.cache/memest"),
+    LOG_FILE,
     rotation="00:00",
     retention=datetime.timedelta(days=1),
     backtrace=True,
@@ -26,6 +27,15 @@ cmd: start, status, stop, restart
 """
 
 CONFIG_FILE = os.path.expanduser("~/.config/memest/config.ini")
+
+
+def get_log_error():
+    error_lines = []
+    for line in open(LOG_FILE, "r").read().splitlines():
+        if "ERROR" in line:
+            error_lines.append(line)
+    content = "\n".join(error_lines[-10:])
+    return content
 
 
 def kill_process_tree(pid):
@@ -63,6 +73,10 @@ def show_status():
     cfg = Config(CONFIG_FILE)
     all_rep = [i for i in cfg.get_sections() if i != "default"]
     print("sync:", all_rep)
+    err_lines = get_log_error()
+    if err_lines:
+        print(err_lines)
+        print(f"more details in {LOG_FILE}")
 
 
 def is_memest_daemon_running():
