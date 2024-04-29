@@ -1,5 +1,6 @@
 import os
 import time
+from multiprocessing import Pool
 
 from loguru import logger
 
@@ -28,6 +29,7 @@ class MeST:
     def __init__(self, cfg):
         self.cfg = cfg
         self.loop_period = self.cfg.get_intvalue("default.loop_period", 5)
+        self.thread = self.cfg.get_intvalue("default.thread", 10)
         self.cache_dir = os.path.expanduser(self.cfg.get_value("default.cache"))
         git_tools.api.mkdir(self.cache_dir)
 
@@ -62,8 +64,10 @@ class MeST:
             self.loop_period = self.cfg.get_intvalue("default.loop_period", 5)
             self.init_rep_set()
 
-        for rep in self.rep_set.values():
-            sync_one_rep(rep)
+        # for rep in self.rep_set.values():
+        # sync_one_rep(rep)
+        with Pool(self.thread) as p:
+            p.map(sync_one_rep, self.rep_set.values())
 
     def run(self):
         self.init_rep_set()
