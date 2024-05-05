@@ -10,6 +10,15 @@ if "OPENSSL_DIR" in ENV:
     del ENV["OPENSSL_DIR"]
 
 
+def handle_index_lock_error(work_dir, error_msg):
+    if ".git/index.lock" in error_msg:
+        subprocess.run(
+            ["rm", "-f", ".git/index.lock"], env=ENV, cwd=work_dir, check=False
+        )
+        return True
+    return False
+
+
 def mkdir(path):
     if not os.path.exists(path):
         os.makedirs(path)
@@ -141,8 +150,12 @@ def update_branch_list(rep_data: RepData):
     git_command = ["git", "branch", "-r"]
     output = subprocess.check_output(git_command, text=True, cwd=work_dir)
     alias = rep_data.alias
-    remote_branches = [line.strip() for line in output.splitlines() if line.strip().startswith(alias)]
-    rep_data.branch_list = [branch_name[len(alias) + 1:] for branch_name in remote_branches]
+    remote_branches = [
+        line.strip() for line in output.splitlines() if line.strip().startswith(alias)
+    ]
+    rep_data.branch_list = [
+        branch_name[len(alias) + 1 :] for branch_name in remote_branches
+    ]
     # logger.info("remote_branches {}", rep_data.branch_list)
 
 
@@ -164,11 +177,9 @@ def push(rep_data: RepData):
             check=False,
         )
         if result.returncode != 0:
-            logger.error(
-                "fail, code:{} reason:{}",
-                result.returncode,
-                result.stderr.decode("utf-8"),
-            )
+            error_msg = result.stderr.decode("utf-8")
+            if not handle_index_lock_error(work_dir, error_msg):
+                logger.error("fail, code:{} reason:{}", result.returncode, error_msg)
             continue
 
         push_command = []
@@ -232,8 +243,7 @@ def merge_remote_branches(rep_data):
             check=False,
         )
         subprocess.run(
-            ["git", "merge", "--no-commit"
-             f"{alias}/{branch}"],
+            ["git", "merge", "--no-commit" f"{alias}/{branch}"],
             cwd=work_dir,
             check=False,
             stdout=subprocess.DEVNULL,
@@ -247,8 +257,7 @@ def merge_remote_branches(rep_data):
             stderr=subprocess.DEVNULL,
         )
         subprocess.run(
-            ["git", "commit"
-             "-m", "Force merged with conflicts"],
+            ["git", "commit" "-m", "Force merged with conflicts"],
             cwd=work_dir,
             check=False,
             stdout=subprocess.DEVNULL,

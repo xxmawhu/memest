@@ -58,7 +58,7 @@ def kill_process_tree(pid):
                     cmdline = " ".join(parent.cmdline())
                     print(f"kill {parent.pid} {cmdline}")
                 parent.send_signal(sig)
-        except Exception:
+        except Exception as e:
             print(e)
 
 
