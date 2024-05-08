@@ -29,6 +29,21 @@ cmd: start, status, stop, restart
 CONFIG_FILE = os.path.expanduser("~/.config/memest/config.ini")
 
 
+def add_cron_job_if_not_exists(cron_command, schedule):
+    tmp_crontab_file = "tmp_my_crontab"
+    subprocess.run(["crontab", "-l"], stdout=open(tmp_crontab_file, "w"), check=True)
+    all_tasks = open(tmp_crontab_file, "r").read()
+    cmd = f"{schedule} {cron_command}"
+    if cmd in all_tasks:
+        subprocess.run(["rm", "-f", tmp_crontab_file], check=False)
+        return
+
+    with open(tmp_crontab_file, "a") as file:
+        file.write(f"{schedule} {cron_command}\n")
+    subprocess.run(["crontab", tmp_crontab_file], check=False)
+    subprocess.run(["rm", "-f", tmp_crontab_file], check=False)
+
+
 def get_log_error():
     error_lines = []
     for line in open(LOG_FILE, "r").read().splitlines():
@@ -115,6 +130,8 @@ def main():
     os.system("mkdir -p ~/.cache/")
     init_check()
     if cmd == "start":
+        add_cron_job_if_not_exists("memest start", "@reboot")
+        add_cron_job_if_not_exists("memest start", "@daily")
         if is_memest_daemon_running():
             print("memest is running")
         else:
