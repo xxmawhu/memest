@@ -167,7 +167,7 @@ def push(rep_data: RepData):
     logger.info("push to {}", rep_data.address)
     work_dir = rep_data.work_dir
     for branch in local_branch_list:
-        checkout_command = ["git", "checkout", branch]
+        checkout_command = ["git", "checkout", branch, "--"]
         logger.info("run {}", checkout_command)
         result = subprocess.run(
             checkout_command,
@@ -233,7 +233,7 @@ def merge_remote_branches(rep_data):
     branch_list = rep_data.branch_list
     alias = rep_data.alias
     for branch in branch_list:
-        checkout_command = ["git", "checkout", branch]
+        checkout_command = ["git", "checkout", branch, "--"]
         subprocess.run(
             checkout_command,
             cwd=work_dir,
