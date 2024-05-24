@@ -182,7 +182,7 @@ def push(rep_data: RepData):
                 "Your local changes to the following files would be overwritten by checkout"
                 in error_msg
             ):
-                # rm all
+                logger.info("clean {}", work_dir)
                 os.system(f"rm -rf {work_dir}")
                 return
             if not handle_index_lock_error(work_dir, error_msg):
