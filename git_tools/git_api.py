@@ -178,6 +178,13 @@ def push(rep_data: RepData):
         )
         if result.returncode != 0:
             error_msg = result.stderr.decode("utf-8")
+            if (
+                "Your local changes to the following files would be overwritten by checkout"
+                in error_msg
+            ):
+                # rm all
+                os.system(f"rm -rf {work_dir}")
+                return
             if not handle_index_lock_error(work_dir, error_msg):
                 logger.error("fail, code:{} reason:{}", result.returncode, error_msg)
             continue
