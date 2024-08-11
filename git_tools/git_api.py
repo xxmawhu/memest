@@ -164,8 +164,8 @@ def push(rep_data: RepData):
     if not good_rep_data(rep_data):
         return
     local_branch_list = get_local_branch_list(rep_data.work_dir)
-    logger.info("push to {}", rep_data.address)
     work_dir = rep_data.work_dir
+    logger.info("{} - push to {}", work_dir, rep_data.address)
     for branch in local_branch_list:
         checkout_command = ["git", "checkout", branch, "--"]
         logger.info("{} - run {}", work_dir, checkout_command)
@@ -253,7 +253,7 @@ def push(rep_data: RepData):
                 logger.error("@{} error:{}", rep_data.work_dir, reason)
 
         push_command += ["git", "push", rep_data.alias, branch]
-        logger.info("run {}", push_command)
+        logger.info("{} - run {}", work_dir, push_command)
         result = subprocess.run(
             push_command,
             cwd=work_dir,
