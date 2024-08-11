@@ -33,7 +33,7 @@ def get_all_remotes(work_dir: str):
         env=ENV,
     ).splitlines()
     remotes = [line.split("\t")[0] for line in result]
-    return list(set(remotes))
+    return sorted(list(set(remotes)))
 
 
 def get_local_branch_list(work_dir):
@@ -53,8 +53,8 @@ def good_rep_data(rep_data):
         ss += f" address:{rep_data.work_dir}"
     if rep_data.alias and rep_data.address and rep_data.work_dir:
         return True
-    else:
-        logger.error("{} is not good_rep_data", ss)
+    logger.error("{} - {} is not good_rep_data", rep_data.work_dir, ss)
+    return False
 
 
 def ensure_bare_repository(rep_data):
@@ -168,7 +168,7 @@ def push(rep_data: RepData):
     work_dir = rep_data.work_dir
     for branch in local_branch_list:
         checkout_command = ["git", "checkout", branch, "--"]
-        logger.info("run {}", checkout_command)
+        logger.info("{} - run {}", work_dir, checkout_command)
         result = subprocess.run(
             checkout_command,
             cwd=work_dir,
@@ -186,7 +186,12 @@ def push(rep_data: RepData):
                 os.system(f"rm -rf {work_dir}")
                 return
             if not handle_index_lock_error(work_dir, error_msg):
-                logger.error("fail, code:{} reason:{}", result.returncode, error_msg)
+                logger.error(
+                    "{} - fail, code:{} reason:{}",
+                    result.returncode,
+                    error_msg,
+                    work_dir,
+                )
             continue
 
         push_command = []
@@ -197,7 +202,7 @@ def push(rep_data: RepData):
             pull_command.append(git_ssh_command)
 
         pull_command += ["git", "pull", rep_data.alias, branch]
-        logger.info("run {}", pull_command)
+        logger.info("{} - run {}", work_dir, pull_command)
         result = subprocess.run(
             pull_command,
             cwd=work_dir,
@@ -210,7 +215,7 @@ def push(rep_data: RepData):
             # fix unrelated-histories
             reason = result.stderr.decode("utf-8")
             if "refusing to merge unrelated histories" in reason:
-                logger.info("fix unrelated histories @{}", rep_data.work_dir)
+                logger.info("{} - fix unrelated histories", work_dir)
                 pull_command += [
                     "git",
                     "pull",
@@ -218,7 +223,7 @@ def push(rep_data: RepData):
                     branch,
                     "--allow-unrelated-histories",
                 ]
-                logger.info("run {}", pull_command)
+                logger.info("{} - run {}", work_dir, pull_command)
                 result = subprocess.run(
                     pull_command,
                     cwd=work_dir,
@@ -229,15 +234,14 @@ def push(rep_data: RepData):
                 )
                 if result.returncode != 0:
                     logger.error(
-                        "fix unrelated histories fail,{} code:{} reason:{}",
+                        "{} - fix unrelated histories fail,{} code:{} reason:{}",
+                        work_dir,
                         rep_data.address,
                         result.returncode,
                         result.stderr.decode("utf-8"),
                     )
                 else:
-                    logger.info(
-                        "{} fix unrelated histories success!", rep_data.work_dir
-                    )
+                    logger.info("{} - fix unrelated histories success!", work_dir)
                     subprocess.run(
                         ["git", "commit" "-m", "Force merged with conflicts"],
                         cwd=work_dir,
@@ -330,7 +334,7 @@ def check_remotes(rep_cache_data: RepCacheData):
             check=False,
         )
         if result.returncode == 0:
-            logger.info("git remote remove {} success", remote)
+            logger.info("{} - git remote remove {} success", work_dir, remote)
         else:
             logger.error(
                 "git remote remove {} fail! reason:{}",
