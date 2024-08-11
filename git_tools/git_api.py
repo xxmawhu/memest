@@ -207,12 +207,46 @@ def push(rep_data: RepData):
             check=False,
         )
         if result.returncode != 0:
-            logger.error(
-                "pull to {} fail, code:{} reason:{}",
-                rep_data.address,
-                result.returncode,
-                result.stderr.decode("utf-8"),
-            )
+            # fix unrelated-histories
+            reason = result.stderr.decode("utf-8")
+            if "refusing to merge unrelated histories" in reason:
+                logger.info("fix unrelated histories @{}", rep_data.work_dir)
+                pull_command += [
+                    "git",
+                    "pull",
+                    rep_data.alias,
+                    branch,
+                    "--allow-unrelated-histories",
+                ]
+                logger.info("run {}", pull_command)
+                result = subprocess.run(
+                    pull_command,
+                    cwd=work_dir,
+                    env=ENV,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.PIPE,
+                    check=False,
+                )
+                if result.returncode != 0:
+                    logger.error(
+                        "fix unrelated histories fail,{} code:{} reason:{}",
+                        rep_data.address,
+                        result.returncode,
+                        result.stderr.decode("utf-8"),
+                    )
+                else:
+                    logger.info(
+                        "{} fix unrelated histories success!", rep_data.work_dir
+                    )
+                    subprocess.run(
+                        ["git", "commit" "-m", "Force merged with conflicts"],
+                        cwd=work_dir,
+                        check=False,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
+            else:
+                logger.error("@{} error:{}", rep_data.work_dir, reason)
 
         push_command += ["git", "push", rep_data.alias, branch]
         logger.info("run {}", push_command)
