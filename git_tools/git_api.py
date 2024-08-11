@@ -120,7 +120,7 @@ def init_rep(rep_data: RepData):
 def fetch(rep_data: RepData):
     if not good_rep_data(rep_data):
         return
-    logger.info("fetch {}", rep_data.address)
+    logger.info("{} - fetch {}", rep_data.work_dir, rep_data.address)
     cmd = []
     if rep_data.key_file:
         git_ssh_command = f'ssh -i "{rep_data.key_file}"'
