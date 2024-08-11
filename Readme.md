@@ -27,7 +27,7 @@ You can customize your own configurations, and here's an example,
 ; Repository synchronization check interval
 loop_period=10
 ; use thread num
-thread=10
+thread=3
 ; Repository cache folder
 cache=~/.local/gitcache
 
