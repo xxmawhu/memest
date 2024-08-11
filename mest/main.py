@@ -1,5 +1,6 @@
 import os
 import sys
+import glob
 import signal
 import datetime
 import subprocess
@@ -44,7 +45,8 @@ def add_cron_job_if_not_exists(cron_command, schedule):
 
 def get_log_error():
     error_lines = []
-    for line in open(LOG_FILE, "r").read().splitlines():
+    log_file = sorted(glob.glob(os.path.expanduser("~/.cache/mmst/memest.*")))[-1]
+    for line in open(log_file, "r").read().splitlines():
         if "ERROR" in line:
             error_lines.append(line)
     content = "\n".join(error_lines[-10:])
