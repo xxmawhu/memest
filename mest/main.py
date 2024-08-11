@@ -1,7 +1,5 @@
 import os
-from pprint import pprint
 import sys
-import time
 import signal
 import datetime
 import subprocess
@@ -13,11 +11,11 @@ from .config import Config
 from .rep_mana import MeST
 
 logger.remove(handler_id=None)
-LOG_FILE = os.path.expanduser("~/.cache/memest")
+LOG_FILE = os.path.expanduser("~/.cache/mmst/memest") + ".{time:YYYYMMDD}"
 logger.add(
     LOG_FILE,
     rotation="00:00",
-    retention=datetime.timedelta(days=1),
+    retention=datetime.timedelta(days=5),
     backtrace=True,
     diagnose=True,
     enqueue=True,

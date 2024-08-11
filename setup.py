@@ -1,35 +1,29 @@
 import os
 import sys
-import datetime
 import subprocess
 from setuptools import setup
 from setuptools import find_packages
 
 
-def get_latest_commit_hash():
+def get_version():
     try:
-        output = subprocess.check_output(
-            ["git", "log", "-n", "1", "--pretty=format:%H"]
+        output = (
+            subprocess.check_output(
+                ["git", "log", "--pretty=format:%ad %H", "--date=short"]
+            )
+            .decode()
+            .splitlines()
         )
-        commit_hash = output.decode("utf-8").strip()
-        return "".join(i for i in commit_hash if i in "123456789")
     except subprocess.CalledProcessError as e:
+        print("Error executing git log:", e)
         return None
-    except FileNotFoundError:
-        return None
+    main_version = output[0][:7]
+    sub_version = len([i for i in output if i.startswith(main_version)])
+    year, month = main_version.split("-")
+    return f"{year}.{int(month)}.{sub_version}"
 
 
-def get_today_date():
-    today = datetime.datetime.now()
-    return today.strftime("%Y.%m")
-
-
-VERSION = get_today_date().replace(".0", ".")
-
-HASH = get_latest_commit_hash()
-if HASH is None:
-    exit(1)
-VERSION += "." + HASH[:6]
+VERSION = get_version()
 
 if sys.argv[1] == "publish":
     print("version:", VERSION)
