@@ -1,4 +1,5 @@
 import os
+import time
 import subprocess
 from loguru import logger
 from .base_dtypes import RepData, RepCacheData
@@ -17,6 +18,26 @@ def handle_index_lock_error(work_dir, error_msg):
         )
         return True
     return False
+
+
+# 多次执行，以确保成功
+def execute_command(cmd, work_dir, retries=10):
+    error_msg = ""
+    for _ in range(0, retries):
+        result = subprocess.run(
+            cmd,
+            cwd=work_dir,
+            env=ENV,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        if result.returncode == 0:
+            error_msg = ""
+            break
+        time.sleep(10)
+        error_msg = result.stderr.decode("utf-8")
+    return error_msg
 
 
 def mkdir(path):
@@ -254,21 +275,9 @@ def push(rep_data: RepData):
 
         push_command += ["git", "push", rep_data.alias, branch]
         logger.info("{} - run {}", work_dir, push_command)
-        result = subprocess.run(
-            push_command,
-            cwd=work_dir,
-            env=ENV,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            check=False,
-        )
-        if result.returncode != 0:
-            logger.error(
-                "push to {} fail, code:{} reason:{}",
-                rep_data.address,
-                result.returncode,
-                result.stderr.decode("utf-8"),
-            )
+        error_msg = execute_command(push_command, work_dir, 10)
+        if error_msg != "":
+            logger.error("push to {} fail, reason:{}", rep_data.address, error_msg)
 
 
 def merge_remote_branches(rep_data):
