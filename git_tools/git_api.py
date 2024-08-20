@@ -147,21 +147,9 @@ def fetch(rep_data: RepData):
         git_ssh_command = f'ssh -i "{rep_data.key_file}"'
         cmd.append(git_ssh_command)
     cmd += ["git", "fetch", rep_data.alias]
-    result = subprocess.run(
-        cmd,
-        env=ENV,
-        cwd=rep_data.work_dir,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.PIPE,
-        check=False,
-    )
-    if result.returncode != 0:
-        logger.error(
-            "fetch {} fail, code:{} reason:{}",
-            rep_data.address,
-            result.returncode,
-            result.stderr.decode("utf-8"),
-        )
+    error_msg = execute_command(cmd, rep_data.work_dir, 10)
+    if error_msg:
+        logger.error("fetch {} fail reason:{}", rep_data.address, error_msg)
         return
     update_branch_list(rep_data)
 
