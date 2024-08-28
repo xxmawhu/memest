@@ -215,11 +215,11 @@ def push(rep_data: RepData):
         error_msg = execute_command(pull_command, work_dir, 10)
         if error_msg != "":
             if "closed by remote host" in error_msg:
-                logger.info("{} - closed by remote host", work_dir)
+                logger.warning("{} - closed by remote host", work_dir)
             elif "Connection closed" in error_msg:
-                logger.info("{} - connection closed", work_dir)
+                logger.warning("{} - connection closed", work_dir)
             elif "GitHub SSH access is temporarily unavailable" in error_msg:
-                logger.info(
+                logger.warning(
                     "{} - GitHub SSH access is temporarily unavailable", work_dir
                 )
             elif "refusing to merge unrelated histories" in error_msg:
