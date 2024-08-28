@@ -212,18 +212,17 @@ def push(rep_data: RepData):
 
         pull_command += ["git", "pull", rep_data.alias, branch]
         logger.info("{} - run {}", work_dir, pull_command)
-        result = subprocess.run(
-            pull_command,
-            cwd=work_dir,
-            env=ENV,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            check=False,
-        )
-        if result.returncode != 0:
-            # fix unrelated-histories
-            reason = result.stderr.decode("utf-8")
-            if "refusing to merge unrelated histories" in reason:
+        error_msg = execute_command(pull_command, work_dir, 10)
+        if error_msg != "":
+            if "closed by remote host" in error_msg:
+                logger.info("{} - closed by remote host", work_dir)
+            elif "Connection closed" in error_msg:
+                logger.info("{} - connection closed", work_dir)
+            elif "GitHub SSH access is temporarily unavailable" in error_msg:
+                logger.info(
+                    "{} - GitHub SSH access is temporarily unavailable", work_dir
+                )
+            elif "refusing to merge unrelated histories" in error_msg:
                 logger.info("{} - fix unrelated histories", work_dir)
                 pull_command += [
                     "git",
@@ -259,7 +258,7 @@ def push(rep_data: RepData):
                         stderr=subprocess.DEVNULL,
                     )
             else:
-                logger.error("@{} error:{}", rep_data.work_dir, reason)
+                logger.error("@{} error:{}", rep_data.work_dir, error_msg)
 
         push_command += ["git", "push", rep_data.alias, branch]
         logger.info("{} - run {}", work_dir, push_command)
