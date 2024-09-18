@@ -1,6 +1,3 @@
-from .base_dtypes import RepData, RepCacheData
-
-
 class RepTask:
     cache_work_dir = None
 

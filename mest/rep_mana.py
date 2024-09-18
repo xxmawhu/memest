@@ -10,7 +10,8 @@ import git_tools
 @logger.catch
 def one_cycle_task(rep_data):
     logger.info("fetch and merge for {}", rep_data.address)
-    git_tools.api.init_rep(rep_data)
+    if not git_tools.api.init_rep(rep_data):
+        return
     git_tools.api.fetch(rep_data)
     git_tools.api.merge_remote_branches(rep_data)
     git_tools.api.push(rep_data)

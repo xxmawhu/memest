@@ -111,7 +111,7 @@ def is_git_rep(work_dir):
 
 def init_rep(rep_data: RepData):
     if not good_rep_data(rep_data):
-        return
+        return False
     mkdir(rep_data.work_dir)
     # logger.info("{}: init_rep", rep_data.address)
     git_dir = os.path.join(rep_data.work_dir, ".git")
@@ -123,10 +123,10 @@ def init_rep(rep_data: RepData):
     # 添加远程仓库
     if rep_data.alias == "":
         logger.error("[{}] alias is null", rep_data.address)
-        return
+        return False
     if rep_data.address == "":
         logger.error("address is null", rep_data.address)
-        return
+        return False
     if rep_data.alias == "local":
         ensure_bare_repository(rep_data)
     # 增加remote 仓库
@@ -135,6 +135,7 @@ def init_rep(rep_data: RepData):
         logger.info("{} as remote", rep_data.address)
         cmd = ["git", "remote", "add", rep_data.alias, rep_data.address]
         subprocess.run(cmd, cwd=rep_data.work_dir, check=True)
+    return True
 
 
 @logger.catch
@@ -251,7 +252,7 @@ def push(rep_data: RepData):
                 else:
                     logger.info("{} - fix unrelated histories success!", work_dir)
                     subprocess.run(
-                        ["git", "commit" "-m", "Force merged with conflicts"],
+                        ["git", "commit", "-m", "Force merged with conflicts"],
                         cwd=work_dir,
                         check=False,
                         stdout=subprocess.DEVNULL,
@@ -298,7 +299,7 @@ def merge_remote_branches(rep_data):
             stderr=subprocess.DEVNULL,
         )
         subprocess.run(
-            ["git", "commit" "-m", "Force merged with conflicts"],
+            ["git", "commit", "-m", "Force merged with conflicts"],
             cwd=work_dir,
             check=False,
             stdout=subprocess.DEVNULL,
