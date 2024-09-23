@@ -78,6 +78,22 @@ def good_rep_data(rep_data):
     return False
 
 
+def is_good_rep(rep_data):
+    result = subprocess.run(
+        ["git", "status"],
+        cwd=rep_data.work_dir,
+        env=ENV,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if result.returncode == 0:
+        return True
+    error_msg = result.stderr.decode("utf-8")
+    logger.error("{} is not good_rep_data, reason:{}", rep_data.work_dir, error_msg)
+    return False
+
+
 def ensure_bare_repository(rep_data):
     if not good_rep_data(rep_data):
         return
@@ -120,6 +136,12 @@ def init_rep(rep_data: RepData):
         logger.info("Initializing {}", rep_data.work_dir)
         subprocess.run(["git", "init"], cwd=rep_data.work_dir, check=False, text=True)
         logger.info("Repository {} initialized.", rep_data.work_dir)
+
+    if not is_good_rep(rep_data):
+        logger.error("{} is not git rep", rep_data.work_dir)
+        subprocess.run(["rm", "-rf", rep_data.work_dir], check=False, text=True)
+        logger.info("clean {}", rep_data.work_dir)
+        return False
     # 添加远程仓库
     if rep_data.alias == "":
         logger.error("[{}] alias is null", rep_data.address)
